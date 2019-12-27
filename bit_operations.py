@@ -1,4 +1,10 @@
+# https://bitstring.readthedocs.io/en/latest/
+
+import functools
+import operator
 import os
+
+from bitstring import Bits
 
 BITMAPS_DIR = './bitmaps'
 BITMAP_EXT = '.bm'
@@ -16,45 +22,29 @@ def main():
             continue
         path = os.path.join(BITMAPS_DIR, file)
 
-        with open(path, 'rb') as f:
-            bitmaps[path] = f.read()  # returns 'bytes' object
+        bitmaps[path] = Bits(filename=path)
 
-    print('Bytes: ', bitmaps)  # file1: bytes, file2: bytes ...
+    print('Bitstrings: ', bitmaps)  # file1: bytes, file2: bytes ...
 
-    # bitmaps values are 'bytes' now.
-    # To be able to do | and & we have to transform them to integers
+    for file, bits in bitmaps.items():
+        print(file)
+        print(bits.bin)
 
-    for file, file_bytes in bitmaps.items():
-        bitmaps[file] = int.from_bytes(file_bytes, byteorder='big')
+    accumulator = functools.reduce(operator.ior, bitmaps.values())
+    print('Accumulator: ')
+    print(accumulator.bin)
 
-    print('Integers: ', bitmaps)  # file1: int, file2: int ...
-
-    # Let's do | now
-    accumulator = 0
-
-    for file_bytes in bitmaps.values():
-        accumulator |= file_bytes
-
-    print('Accumulator int: ', accumulator)
-
-    # To iterate over bits we can use built-in 'bin'.
-    # It returns a string containing '1' and '0'.
-    bits = bin(accumulator)[2:]  # cut the binary prefix, we need the bits only
-
-    print('Bits: ', bits)
-
-    # let's iterate over the bits
-    for bit in bits:
-        if bit == '1':
-            pass
-        else:
-            pass
+    # let's iterate over bits
+    for bit in accumulator:
+        print(bit)
 
     # Now let's open a binary file and iterate over its bytes and over the bits
-
     with open(TEST_FILE, 'rb') as test_file:
-        for byte, bit in zip(test_file.read(), bits):
-            print('Byte - bit: ', byte, bit)
+        for byte, bit in zip(test_file.read(), accumulator):
+            if bit is True:
+                print('+ Byte - bit: ', byte, bit)
+            elif bit is False:
+                print('- Byte - bit: ', byte, bit)
 
 
 if __name__ == '__main__':
