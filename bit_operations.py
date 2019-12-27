@@ -30,6 +30,7 @@ def main():
         print(file)
         print(bits.bin)
 
+    # same as 'a | b'
     accumulator = functools.reduce(operator.ior, bitmaps.values())
     print('Accumulator: ')
     print(accumulator.bin)
